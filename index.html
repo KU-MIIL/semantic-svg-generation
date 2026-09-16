@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="We propose a VLM-driven agentic framework that generates semantically grouped, editable SVGs by recursively parsing a scene into a hierarchy of geometrically complete components, together with the Semantic SVG Benchmark and metrics (Semantic Recall/Precision, PERE) for structural compositionality and editability.">
+  <meta name="keywords" content="SVG generation, Vision-Language Models, Compositional generation, Semantic grouping, Amodal completion, Vector graphics, Editability">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compositional SVG Generation via VLM-Driven Hierarchical Semantic Parsing</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.png">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+  <!-- KaTex -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.4/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.4/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.4/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+    });
+  </script>
+  <!-- KaTex -->
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">Compositional SVG Generation via VLM-Driven Hierarchical Semantic Parsing</h1>
+          <div class="is-size-3 publication-authors" style="margin-bottom: 0.9rem;">
+            <img src="./static/images/emnlp2026.png" alt="EMNLP 2026" style="height: 60px; vertical-align: middle;">
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://shp216.github.io/">Sehwan Park</a><sup>1</sup>*,</span>
+            <span class="author-block">Taehoon Kim<sup>1</sup>*,</span>
+            <span class="author-block">
+              <a href="https://chaksseu.github.io/">Geonhee Han</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://dohyun-as.github.io/">Dohyun Kim</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://seung-kim.github.io/seungkim/">Seung Wook Kim</a><sup>2</sup>,</span>
+            <span class="author-block">
+              <a href="https://phseo.github.io/">Paul Hongsuck Seo</a><sup>1</sup></span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Korea University,</span>
+            <span class="author-block"><sup>2</sup>KAIST AI</span>
+            <span class="eql-cntrb"><small><br>* Equal contribution</small></span>
+          </div>
+          <div class="affiliation-logos">
+            <a href="https://www.korea.edu/sites/en/index.do" target="_blank">
+              <img src="./static/images/ku-logo.png" alt="Korea University" style="height: 50px;">
+            </a>
+            <a href="https://miil.korea.ac.kr/" target="_blank">
+              <img src="./static/images/miil.png" alt="MIIL" style="height: 54px;">
+            </a>
+            <a href="https://gsai.kaist.ac.kr/" target="_blank">
+              <img src="./static/images/kaist-logo.png" alt="KAIST" style="height: 46px;">
+            </a>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2609.14657"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- TODO: replace with the official code repository URL. -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- TODO: replace with the Semantic SVG Benchmark URL. -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-database"></i>
+                  </span>
+                  <span>Benchmark</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            While Vision-Language Models (VLMs) excel at visual reasoning, generating structured,
+            editable Scalable Vector Graphics (SVG) remains a fundamental challenge.
+            Existing pipelines predominantly yield flat, semantically agnostic collections of paths,
+            where editing a single object requires manually identifying its constituent paths.
+            To address this, we propose a VLM-driven agentic framework for semantic compositional SVG generation.
+            Our pipeline recursively parses visual scenes into semantic and geometric hierarchies via
+            top-down decomposition, visual grounding, and prompt-driven amodal occlusion recovery,
+            ensuring each component is geometrically complete.
+            Furthermore, we introduce the Semantic SVG Benchmark with human-annotated semantic groups
+            and novel sub-component metrics (Semantic Recall/Precision, PERE) to explicitly evaluate
+            structural compositionality and functional editability.
+            Experiments show that our natively predicted structures surpass the upper bounds of
+            existing flat-generation methods in both grouping quality and editability,
+            while maintaining state-of-the-art visual fidelity.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Motivation -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered" id="motivation">Why Semantic Compositionality?</h2>
+        <img src="./static/images/teaser.png" class="center" style="display: block; margin: 0 auto;" width="620"/>
+        <div class="content has-text-justified">
+          <p>
+            <b>Flat paths vs. grouped paths.</b>
+            (a) Prior SVG generation methods output a flat, unorganized collection of paths,
+            whereas our framework constructs a semantic-aligned hierarchical tree.
+            (b) Without a hierarchical semantic structure, downstream edits (e.g., removing the crown) fail
+            because individual paths are decoupled from human-interpretable concepts and the geometry
+            hidden behind the removed object is missing.
+            Our explicit semantic grouping encapsulates the entire target object into a single cohesive
+            <code>&lt;g&gt;</code> node and recovers the occluded background, enabling successful and intuitive manipulation.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Motivation -->
+
+    <!-- Method -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered" id="method">Method</h2>
+        <img src="./static/images/overview.png" style="display: block; margin: 0 auto;" width="900"/>
+        <div class="content has-text-justified">
+          <p>
+            <b>Overview of our VLM-driven agentic system for compositional SVG generation.</b>
+            We reformulate image-to-SVG as a multimodal semantic parsing problem: an input image $\mathcal{I}$ is translated
+            into a hierarchical semantic tree $\mathcal{T}$ whose nodes are textual concepts with grounded regions,
+            and the final SVG $\mathcal{S}$ is compiled by nesting <code>&lt;g&gt;</code> groups that mirror $\mathcal{T}$.
+            A single VLM (Gemini-3-flash by default) assumes four cooperating roles
+            (Hierarchical Semantic Decomposer, Residual Judge, Occlusion Assessor, and Amodal Spatial Estimator)
+            and recursively invokes grounding, inpainting, and vectorization modules whose outputs constitute the final SVG.
+          </p>
+          <p>
+            <b>(Top) Top-down VLM-driven decomposition.</b>
+            Starting from the root image, the <b>Hierarchical Semantic Decomposer</b> judges whether the current node is
+            semantically decomposable. If so, it emits a parsing plan of child labels and bounding boxes ordered back-to-front;
+            otherwise the node is marked atomic and becomes a leaf.
+            The <b>Semantic Grounding</b> module (SAM 3) converts each (label, box) pair into a pixel mask.
+            Any unassigned pixels are compiled into a residual image, and the <b>Residual Judge</b> either promotes them
+            to a new semantic node or discards them as noise.
+            The loop recurses on every child node until all branches terminate in atomic leaves.
+          </p>
+          <p>
+            <b>(Bottom) Semantic completion and assembly.</b>
+            Extracting foreground components leaves artificial holes in background elements.
+            For each leaf, the <b>Occlusion Assessor</b> decides whether true occlusion exists, and if so the
+            <b>Amodal Spatial Estimator</b> predicts a polygon outlining the complete shape of the component.
+            The region between this amodal polygon and the visible mask is filled by the <b>Generative Inpainting</b>
+            module (FLUX.1-Fill), conditioned on the semantic label.
+            Every completed component is converted into vector primitives by the <b>Vectorization</b> module (VTracer)
+            and assembled back-to-front into the semantic SVG, whose nested <code>&lt;g id="label"&gt;</code> hierarchy
+            mirrors the tree, yielding intuitively editable (<i>Editability</i>) and structurally complete (<i>Integrity</i>) outputs.
+          </p>
+          <p>
+            <b>Extension to Text-to-SVG.</b>
+            The framework naturally extends to Text-to-SVG by cascading a text-to-image model
+            (FLUX.1-dev or SD3.5-medium) with our pipeline: the synthesized image is fed in as the root image and parsed identically.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Method -->
+
+    <!-- Benchmark -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered" id="benchmark">Semantic SVG Benchmark</h2>
+        <div class="content has-text-justified">
+          <p>
+            Existing benchmarks score only whole-image fidelity, so they cannot tell whether a generated SVG is organized
+            into meaningful, manipulable parts.
+            The <b>Semantic SVG Benchmark</b> is an evaluation set of <b>203 SVGs, each paired with a human-annotated
+            hierarchical semantic tree</b>: annotators recursively group the raw SVG paths into self-contained semantic
+            entities (e.g., <i>sea</i>, <i>parasol</i>) and assign each group a textual label, until no meaningful
+            decomposition remains. Samples are curated to contain substantial occlusion and overlap, so that trivial
+            decomposition is impossible.
+            At test time, the rendering of the ground-truth SVG is given as the input image, and the generated SVG is
+            compared against the ground-truth tree <b>at the group level</b>: groups are rendered and scored with
+            pixel MSE or DINO similarity.
+          </p>
+        </div>
+        <div class="benchmark-examples">
+          <img src="./static/images/benchmark_example1.png" alt="Semantic SVG Benchmark example: roller coaster"/>
+          <img src="./static/images/benchmark_example2.png" alt="Semantic SVG Benchmark example: beach"/>
+        </div>
+        <div class="content has-text-justified">
+          <p>
+            <b>Examples from the Semantic SVG Benchmark.</b>
+            Each sample is an SVG whose raw paths are grouped into a hierarchical semantic tree with a textual label per node.
+            Intermediate nodes (blue) are further decomposed, and leaf nodes (green) are semantically atomic entities;
+            the number of raw paths assigned to each node is shown in its corner.
+          </p>
+          <ul>
+            <li>
+              <b>Semantic Recall</b> &mdash; for each ground-truth group, how well it is reconstructed by the best-matching
+              generated group. Flat baselines that output no groups are granted the <i>optimal</i> GT-conditioned subset of
+              their paths, which is an upper bound on their grouping quality.
+            </li>
+            <li>
+              <b>Semantic Precision</b> &mdash; for each natively <i>predicted</i> group, how well it matches a real
+              ground-truth concept, penalizing arbitrary or meaningless clusters.
+            </li>
+            <li>
+              <b>Post-Edit Rendering Error (PERE)</b> &mdash; functional editability. An occluding object is deleted from both
+              the ground-truth and the generated SVG, and the rendered results are compared. A high PERE means entangled paths
+              (unrelated elements disappear together) or missing amodal geometry (a hole is exposed).
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!--/ Benchmark -->
+
+    <!-- Quantitative Results -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered" id="quantitative">Quantitative Results</h2>
+        <img src="./static/images/table1_i2s.png" class="center" style="display: block; margin: 0 auto;" width="900"/>
+        <div class="content has-text-justified">
+          <p>
+            <b>Image-to-SVG results on the Semantic SVG Benchmark.</b>
+            <i>optimal</i> denotes the theoretical upper bound obtained via post-hoc GT matching (only Recall is defined
+            for flat baselines), while <i>predicted</i> evaluates natively generated structural metadata.
+            Our purely predicted structures surpass the <i>optimal</i> bounds of every baseline in grouping quality
+            and functional editability, reducing PERE by 47.5% relative to VTracer (0.0400 &rarr; 0.0210),
+            while maintaining highly competitive whole-image fidelity.
+          </p>
+        </div>
+
+        <div class="columns is-centered is-vcentered">
+          <div class="column is-half has-text-centered">
+            <img src="./static/images/table2_userstudy.png" class="center" style="display: inline-block;" width="380"/>
+            <div class="content has-text-justified">
+              <p>
+                <b>Human editability study.</b>
+                Participants reproduce move and remove edits on outputs of our method and VTracer.
+                All edits on our SVGs were completed, roughly 1.9&times; faster, since an object can be manipulated as a single unit.
+                The gain is largest for removal, where amodal inpainting restores the occluded regions (MSE 0.006 vs. 0.023).
+              </p>
+            </div>
+          </div>
+          <div class="column is-half has-text-centered">
+            <img src="./static/images/table5_t2s.png" class="center" style="display: inline-block;" width="380"/>
+            <div class="content has-text-justified">
+              <p>
+                <b>Text-to-SVG results on MMSVG-Bench.</b>
+                Both variants of our pipeline substantially outperform the baselines, with FLUX achieving the best
+                CLIP, HPSv2, and Aesthetic scores. OmniSVG's lowest FID is an evaluation artifact, as the reference
+                images are derived from its own training data.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <details class="more-results">
+          <summary>Ablation studies</summary>
+          <img src="./static/images/table3_backbone.png" class="center" style="display: block; margin: 1rem auto 0 auto;" width="900"/>
+          <div class="content has-text-justified">
+            <p>
+              <b>Ablation on the backbone VLM.</b>
+              Gemini-3-flash performs best across all metrics and Claude-Sonnet-4.6 follows.
+              Structural quality closely tracks the spatial reasoning ability of the agent, since the backbone
+              must localize sub-parts before the pipeline converts them into editable groups.
+            </p>
+          </div>
+          <img src="./static/images/table4_inpaint.png" class="center" style="display: block; margin: 0 auto;" width="760"/>
+          <div class="content has-text-justified">
+            <p>
+              <b>Ablation on the amodal inpainting module.</b>
+              Without inpainting, the pipeline degenerates into a mask-and-crop system that extracts only visible pixels.
+              Enabling generative occlusion recovery improves every metric, most notably reducing Grouping F1 (MSE) by 41.1%
+              and PERE by 31.6%.
+            </p>
+          </div>
+        </details>
+      </div>
+    </div>
+    <!--/ Quantitative Results -->
+
+    <!-- Qualitative Results -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered" id="qualitative">Qualitative Results</h2>
+        <img src="./static/images/qual_i2s.png" class="center" style="display: block; margin: 0 auto;" width="900"/>
+        <div class="content has-text-justified">
+          <p>
+            <b>Image-to-SVG.</b>
+            For each method we show the whole image, the isolated semantic object, and the residual background.
+            <i>Ours (pred)</i> is the group natively predicted by our model; for all other methods the object is
+            rendered from paths selected by the optimal post-hoc grouping.
+            Removing the tram exposes holes in VTracer's background and most baselines fail to reconstruct the target
+            coherently, whereas our pipeline isolates the entity and recovers the occluded geometry through amodal inpainting.
+          </p>
+        </div>
+        <img src="./static/images/qual_t2s.png" class="center" style="display: block; margin: 0 auto;" width="560"/>
+        <div class="content has-text-justified">
+          <p>
+            <b>Text-to-SVG.</b>
+            Generated SVGs for the prompts <i>"A cat sleeping on top of a stack of books"</i> (top) and
+            <i>"A magnifying glass over a folded map"</i> (bottom).
+            OmniSVG and InternSVG produce no semantic grouping, so their object and residual rows are empty.
+            Both of our variants synthesize the scene faithfully, and the background behind the foreground object
+            remains structurally complete.
+          </p>
+        </div>
+
+        <details class="more-results">
+          <summary>More qualitative results</summary>
+          <h3 class="title is-5 has-text-centered" style="margin-top: 1.5rem;">Image-to-SVG</h3>
+          <img src="./static/images/qual_i2s_more1.png" class="center" style="display: block; margin: 0 auto;" width="900"/>
+          <img src="./static/images/qual_i2s_more2.png" class="center" style="display: block; margin: 1.5rem auto 0 auto;" width="900"/>
+          <img src="./static/images/qual_i2s_more3.png" class="center" style="display: block; margin: 1.5rem auto 0 auto;" width="900"/>
+          <h3 class="title is-5 has-text-centered" style="margin-top: 2rem;">Text-to-SVG</h3>
+          <img src="./static/images/qual_t2s_more.png" class="center" style="display: block; margin: 0 auto;" width="620"/>
+          <div class="content has-text-justified">
+            <p>
+              Prompts (top to bottom): <i>"A small island with a palm tree and treasure chest"</i>,
+              <i>"A person reading a book under a tree"</i>, <i>"A fish jumping from water into clouds"</i>,
+              and <i>"A bird's nest with two eggs and musical notes"</i>.
+            </p>
+          </div>
+        </details>
+      </div>
+    </div>
+    <!--/ Qualitative Results -->
+
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code></code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p>
+            This means you are free to borrow the <a
+              href="https://github.com/nerfies/nerfies.github.io">source code</a> of this website,
+            we just ask that you link back to this page in the footer.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
