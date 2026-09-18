@@ -1,0 +1,27 @@
+decomposer:
+  min_area: 600
+  median_ksize: 5
+  impact_thresh: 0.0001
+  transparent_drop_thresh: 0.5
+
+  # Per-type quantizer dispatch. Falls back to `quantizer` if the type
+  # isn't listed here.
+  quantizer_by_type:
+    icon:
+      name: "gray_bin"
+      params:
+        n_bins: 16
+    illustration:
+      name: "kmeans_rgb"
+      params:
+        k: 16
+        seed: 0
+        max_iter: 20
+        attempts: 3
+
+samples:
+  manifest: "/data/MMSVGBench/images/manifest.json"
+  n_icon: 150
+  n_illustration: 150
+
+out_dir: "/workspace/decompose_out_full"

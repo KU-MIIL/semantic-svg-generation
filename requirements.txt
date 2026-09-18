@@ -1,0 +1,29 @@
+# Core
+numpy
+pillow
+pyyaml
+pandas
+opencv-python
+
+# Benchmark fetch (scripts/prepare_benchmark.py)
+huggingface_hub
+
+# SVG: vectorize (vtracer) + raster render (cairosvg)
+vtracer
+cairosvg
+
+# Decomposer: SAM 3 (transformers) + Gemini
+torch
+transformers
+google-genai
+
+# Evaluator: pixel/perceptual metrics
+lpips>=0.1.4
+scikit-image>=0.21
+
+# VLM benchmark client (vLLM OpenAI-compatible endpoint)
+openai>=1.0
+
+# Amodal inpaint toggle (--amodal-inpaint): FLUX.1-Fill-dev via diffusers
+diffusers>=0.30
+accelerate>=0.30

@@ -1,0 +1,21 @@
+vlm:
+  # OmniSVG (vLLM local server) — only used when the legacy vLLM client is
+  # wired in. The default local (transformers) client does NOT need these.
+  omnisvg_base_url: "http://0.0.0.0:8000/v1"
+  omnisvg_model: "/model"
+
+  # Gemini (Google Gemini API) — required only if judge.backend == "gemini".
+  gemini_model: "gemini-2.5-flash"
+  gemini_api_key: "PUT_YOUR_KEY_HERE"
+
+output:
+  dir: "/workspace/SVGAgent/output"
+  save_intermediate: true
+
+# Judge (verify + pick_best) backend.
+#   "gemini" → VLM API (costs, slower, semantic reasoning)
+#   "mse"    → local pixel MSE threshold (free, fast, geometric only)
+# This overrides `judge.backend` in config/default.yaml at run time.
+judge:
+  backend: "mse"
+  mse_threshold: 0.03

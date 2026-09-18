@@ -1,0 +1,33 @@
+svg_generator:
+  backend: "omnisvg"
+  model_size: "4B"
+  temperature: 0.3
+  max_tokens: 1024
+  num_candidates: 4
+  extra_buffer: 4
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.05
+
+judge:
+  # "gemini" = API-based VLM judge (verify + pick_best via Gemini Flash)
+  # "mse"    = local pixel-space MSE threshold (no API calls)
+  backend: "mse"
+  # gemini-only
+  model: "gemini-2.5-flash"
+  temperature: 0.1
+  # mse-only: accept if MSE (normalized [0,1] RGB-on-white) < threshold
+  mse_threshold: 0.03
+
+decomposer:
+  min_mask_region_area: 100
+  median_ksize: 5
+  impact_thresh: 0.0001
+  transparent_drop_thresh: 0.5
+
+pipeline:
+  stage5_max_depth: 2
+
+visualizer:
+  enabled: true
+  runs_dir: "/workspace/SVGAgent/runs"

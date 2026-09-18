@@ -1,0 +1,158 @@
+# Secrets — keep API keys / endpoints out of git.
+config.yaml
+config/_merged.yaml
+config/_patched_config.yaml
+
+# Pipeline run artifacts
+runs/
+output/
+bench_out/
+bench_out_*/
+_pipeline_runs/
+_merged.yaml
+_patched_config.yaml
+
+# Debug / probe outputs
+decompose_v2.png
+/tmp_*.png
+*.bak
+tests/decomposer/_outputs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg
+
+# IDE / OS
+.DS_Store
+.idea/
+
+# Large data — keep out of git; fetch via HuggingFace
+*.parquet
+*.safetensors
+*.bin
+pretrained_models/
+
+# Virtualenv
+.venv/
+venv/
+
+# Caches & Environment
+.cache/
+.claude/
+.hf_cache/
+.vscode/
+.devcontainer/
+
+# Data & Models
+models/
+OmniSVG/
+SArena/
+sample/
+*.tar
+
+# Outputs & Logs
+logs/
+*_out_*/
+*_samples/
+decomposed_image/
+*.png
+serving/*.log
+serving/*.pid
+
+# Env files
+set_env.sh
+.SVGAgent
+
+# Experiments
+experiments/object_detection/
+experiments/sam_refine/out
+experiments/sam_stability/out
+vlm_reward_final/
+.claude.json
+
+# Eval visualization PNGs — bulky and regenerable from CSVs + scripts
+eval_results/**/*.png
+
+sample_full/
+data/
+paper_results/
+.cache_runtime/
+experiments/test_inpaint_judge
+experiments/inpaint_isolated
+experiments/sam_stability
+experiments/improve_bad
+
+# === SSemBench / text2svg datasets & outputs (kept outside git) ===
+SSemBench/
+# benchmark/ is fetched from HuggingFace by scripts/prepare_benchmark.py
+benchmark/
+text2svg_images/
+viz_test/
+svg_generated/
+
+# Archives & large blobs
+*.tar.gz
+*.tar.zst
+*.zip
+benchmark_statistics.pdf
+id_ed25519
+
+# Logs under experiments/
+experiments/**/*.log
+
+# Paper drafts (kept in a separate paper repo)
+*.tex
+
+# Claude harness state (local-only, indexed by Claude memory system)
+memory/
+
+# Personal notes
+정확도측정prompt.txt
+
+# Internal/experimental scripts (indexed in memory/reference_internal_scripts.md)
+scripts/_*.py
+scripts/_*.sh
+monitor_*.sh
+
+# Residue / scratch dirs and intermediate analysis outputs
+_residues/
+# inpainter_final/ — now tracked as standalone reference module
+experiments/path_count_*/
+
+# Reference notes extracted from code (regenerable)
+*_PROMPT.txt
+VLM_API_Calling_Points.txt
+
+# Secrets — never commit (real API keys)
+.env
+set_gemini_api_key.sh
+
+# Agent tooling / scratch sandboxes
+.aris/
+test_grouping/
+
+# === Release consolidation: data & scratch kept out of the public repo ===
+# Local GT set — superseded by scripts/prepare_benchmark.py (fetched from HF)
+Camera-Ready-Final-260824/
+# Annotator/benchmark bundle — code is extracted into annotator/; data stays out
+SVGAgent-benchmark/
+# Research probes / scratch experiments (not part of the pipeline)
+experiments/
+# Per-sample decomposition exports (regenerable pipeline output)
+depth2_export/
+# Claude harness snapshot state (local-only)
+.memory_snapshot/
+# Author scratch notes
+/todo
+# Experiment batch drivers (author run-dirs / methods, not needed to use the pipeline)
+/run_*.sh
+# Lab-server-specific baseline model servers (hardcoded internal hosts)
+/scripts/serve_*.sh
