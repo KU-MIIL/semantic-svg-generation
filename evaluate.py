@@ -134,19 +134,23 @@ def _score_pixel(gt_png: Path, pred_svg: Path, work: Path, dino_model):
     return out
 
 
-def _score_grouping(gt_svg: Path, gt_tree: dict, pred_svg: Path, size, dino_model, empty_svg: Path):
+def _score_grouping(gt_svg: Path, gt_tree: dict, pred_svg: Path, size, dino_model):
+    """Grouping (N×M) metric — applies only to predictions that carry a real
+    ``<g>`` grouping. A flat SVG (no groups) is NOT forced into a degenerate
+    single group; it is left to the grouping-free anchor-recall metric
+    (``metric/semantic_flatten_v2``) instead. ``status`` says which case held:
+    ``ok`` (grouping scored), ``flat`` (no groups → use anchor recall), or
+    ``unparseable`` (SVG would not parse)."""
     try:
-        tree, _ = build_tree_from_groups(pred_svg.read_text())
+        tree, info = build_tree_from_groups(pred_svg.read_text())
     except Exception:  # malformed SVG won't parse
-        tree = None
-    unparseable = tree is None
-    if unparseable:  # score against a blank single-group canvas (see eval_semantic_all)
-        pred_svg = empty_svg
-        tree = {"root": {"children": [{"label": "__blank__", "paths": [0]}]}}
+        return {"status": "unparseable"}
+    if info.get("fallback_single_group"):
+        return {"status": "flat"}
     metrics = ("mse_mse", "dino_dino") if dino_model is not None else ("mse_mse",)
     res = semantic.compute(gt_svg, gt_tree, pred_svg, tree, size=size,
                            metrics=metrics, dino_model=dino_model)
-    out = {"unparseable": unparseable}
+    out = {"status": "ok"}
     for key in metrics:
         s = res.per_metric[key]
         out[key] = {"precision": s.precision_sim, "recall": s.recall_sim, "f1": s.f1}
@@ -241,8 +245,8 @@ def main() -> None:
             if "dino" in px:
                 row["dino"] = px["dino"]
         if "grouping" in which:
-            g = _score_grouping(gt_svg, gt_tree, pred, args.size, dino_model, empty_svg)
-            row["group_unparseable"] = g["unparseable"]
+            g = _score_grouping(gt_svg, gt_tree, pred, args.size, dino_model)
+            row["group_status"] = g["status"]
             for k in ("mse_mse", "dino_dino"):
                 if k in g:
                     row[f"group_{k}_f1"] = g[k]["f1"]
@@ -286,6 +290,10 @@ def _report(name, rows, which, has_dino, out_dir, n_missing):
         return d
 
     summary["overall"] = collect(scored)
+    n_grouped = sum(1 for r in scored if r.get("group_status") == "ok")
+    n_flat = sum(1 for r in scored if r.get("group_status") == "flat")
+    summary["n_grouped"] = n_grouped
+    summary["n_flat"] = n_flat
     cats = sorted({r["category"] for r in scored})
     for c in cats:
         summary["per_category"][c] = collect([r for r in scored if r["category"] == c])
@@ -305,9 +313,14 @@ def _report(name, rows, which, has_dino, out_dir, n_missing):
             line += f"    DINO(↑) {o['dino']:.4f}"
         print(line)
     if "grouping" in which:
-        tag = "DINO" if has_dino else "MSE"
-        print(f"  grouping   F1(↑) {o['grouping_f1']:.4f}   "
-              f"P(↑) {o['grouping_precision']:.4f}   R(↑) {o['grouping_recall']:.4f}   [{tag}-scored]")
+        if n_grouped == 0:
+            print("  grouping   n/a — predictions carry no <g> grouping; "
+                  "flat SVGs are scored by anchor recall (semantic_flatten_v2)")
+        else:
+            tag = "DINO" if has_dino else "MSE"
+            print(f"  grouping   F1(↑) {o['grouping_f1']:.4f}   "
+                  f"P(↑) {o['grouping_precision']:.4f}   R(↑) {o['grouping_recall']:.4f}   "
+                  f"[{tag}-scored, over {n_grouped}/{len(scored)} grouped preds]")
     if "anchor" in which:
         line = "  anchor     "
         if has_dino:

@@ -123,20 +123,24 @@ All three come straight from the paper.
 - **Pixel fidelity** — `MSE` (↓) and `DINO` (↑, DINOv2 cosine similarity) between
   the render of your SVG and the reference PNG. Measures *how the image looks*.
 
-- **Semantic grouping** — `Precision` / `Recall` / `F1` (↑). Your SVG's grouping,
-  read from its `<g>` nesting, is matched object-by-object against the GT
-  semantic tree (N×M union-bbox matching). Measures *whether the SVG is organised
-  into the right objects*. A flat SVG (no `<g>`) is treated as a single group.
-  Judge = MSE (which groups match), score = MSE **and** DINO (how well they
-  match); the headline F1 is DINO-scored (MSE-scored when `--no-dino`).
+- **Semantic grouping** — `Precision` / `Recall` / `F1` (↑), computed by
+  `metric/semantic.py`. Your SVG's grouping, read from its `<g>` nesting, is
+  matched object-by-object against the GT semantic tree (N×M union-bbox
+  matching). This applies **only to methods that emit grouped SVGs** (a semantic
+  `<g>` per object); `evaluate.py` reports it as *n/a* for flat SVGs rather than
+  scoring them as one degenerate group. Judge = MSE (which groups match),
+  score = MSE **and** DINO (how well they match); the headline F1 is DINO-scored
+  (MSE-scored under `--no-dino`).
 
-- **Anchor recall** — grouping-free per-object recall: for each GT object, greedily
-  select the predicted shapes that best reconstruct it and score the match
-  (`Recall/DINO` ↑, `Recall/MSE-dist` ↓). Needs no `<g>` structure, so it is
-  defined for **any** SVG, including flat ones.
+- **Anchor recall** — grouping-free per-object recall, computed by
+  `metric/semantic_flatten_v2.py`: for each GT object, greedily select the
+  predicted shapes that best reconstruct it and score the match (`Recall/DINO` ↑,
+  `Recall/MSE-dist` ↓). It needs no `<g>` structure, so it is the semantic metric
+  for **flat SVGs** — and is defined for any SVG.
 
-If your method emits grouped SVGs (`<g>` per object), all three metrics are
-meaningful. If it emits flat SVGs, rely on pixel fidelity + anchor recall.
+If your method emits grouped SVGs (`<g>` per object) you get all three metrics.
+A flat SVG is scored on pixel fidelity + anchor recall (`semantic_flatten_v2`),
+with the grouping metric reported as n/a.
 
 ---
 
